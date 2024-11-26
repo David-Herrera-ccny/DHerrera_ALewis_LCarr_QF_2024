@@ -1,0 +1,66 @@
+import yfinance as yf
+import pandas as pd
+
+# Step 1: Get ETF Constituents
+def get_etf_holdings(etf_ticker):
+    """
+    Fetch the holdings of the given ETF using yfinance.
+    """
+    try:
+        etf = yf.Ticker(etf_ticker)
+        # Check if 'fund_holdings' attribute exists
+        if 'fund_holdings' in etf.info:
+            holdings_data = etf.fund_holdings  # Get holdings information
+            tickers = list(holdings_data["symbol"])  # Extract stock symbols
+            print(f"Successfully retrieved {len(tickers)} holdings for {etf_ticker}.")
+            return tickers
+        else:
+            raise ValueError("Holdings information is unavailable for this ETF.")
+    except Exception as e:
+        print(f"Error retrieving ETF holdings: {e}")
+        return []  # Return an empty list if error occurs
+
+# Step 2: Download Historical Data
+def download_historical_data(tickers, start_date, end_date):
+    """
+    Download daily adjusted close prices for all tickers in the list.
+    """
+    if not tickers:
+        print("No tickers provided. Skipping data download.")
+        return None
+
+    print(f"Downloading data for {len(tickers)} tickers...")
+    try:
+        # Download historical data for the tickers
+        data = yf.download(tickers, start=start_date, end=end_date)["Adj Close"]
+        print("Historical data download complete.")
+        return data
+    except Exception as e:
+        print(f"Error downloading historical data: {e}")
+        return None
+
+# Main Execution
+if __name__ == "__main__":
+    # Parameters
+    etf_ticker = "VOO"  # Vanguard S&P 500 ETF
+    start_date = "2018-01-01"
+    end_date = "2023-12-31"
+
+    # Step 1: Get ETF Constituents
+    tickers = get_etf_holdings(etf_ticker)
+
+    if not tickers:
+        print("No tickers available. Exiting...")
+    else:
+        # Limit to 100 tickers for testing (adjust as needed for larger datasets)
+        tickers = tickers[:100] if len(tickers) > 100 else tickers
+
+        # Step 2: Retrieve Historical Data
+        historical_data = download_historical_data(tickers, start_date, end_date)
+
+        # Display a sample of the downloaded data
+        if historical_data is not None:
+            print("Sample of historical data:")
+            print(historical_data.head())
+        else:
+            print("Failed to retrieve historical data.")
