@@ -1,0 +1,8 @@
+monthly_data = data.resample('M').last()  # Use last trading day of each month
+monthly_returns = monthly_data.pct_change().dropna()
+
+momentum_factors = monthly_data.pct_change(periods=12).shift(-1)
+
+z_factors = ((momentum_factors - momentum_factors.mean()) / momentum_factors.std()).sum(
+    axis=1
+)
